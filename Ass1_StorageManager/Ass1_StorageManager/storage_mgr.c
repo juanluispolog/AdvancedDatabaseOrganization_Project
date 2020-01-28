@@ -135,21 +135,14 @@ extern RC destroyPageFile (char *fileName){
 //
 //
 
-
 RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
-    
-//  Checking of the number of pages is < pageNum
-    if (fHandle->totalNumPages < pageNum || pageNum < 0) {
+    if(fHandle->totalNumPages < pageNum)
         return RC_READ_NON_EXISTING_PAGE;
-    }
     else{
         fp = fopen(fHandle->fileName, "r");
-//      Checking if the file has been read properly
         if (fp != NULL) {
-//          Seek for block # pageNum
-            if(fseek(fp, pageNum*PAGE_SIZE, SEEK_SET) == 0){
-//              Read block # pageNum
-                fread(memPage, PAGE_SIZE, sizeof(char), fp);
+            if(fseek(fp, (pageNum*PAGE_SIZE), SEEK_SET) == 0){
+                fread(memPage, sizeof(char), PAGE_SIZE, fp);
                 fclose(fp);
                 return RC_OK;
             }
@@ -191,8 +184,6 @@ RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 }
 
 
-
-
 //
 //
 //
@@ -202,3 +193,39 @@ RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 //
 
 
+RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
+    if(fHandle->totalNumPages < pageNum)
+        return RC_WRITE_FAILED;
+    else{
+        fp = fopen(fHandle->fileName, "r+");
+        if (fp != NULL) {
+            if(fseek(fp, (pageNum*PAGE_SIZE), SEEK_SET) == 0){
+                if(fwrite(memPage, sizeof(char), PAGE_SIZE, fp) != PAGE_SIZE)
+                    return RC_WRITE_FAILED;
+                else{
+                    fclose(fp);
+                    return RC_OK;
+                }
+            }
+            else return RC_READ_NON_EXISTING_PAGE;
+        }
+        else return RC_FILE_NOT_FOUND;
+    }
+}
+
+
+RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
+    return writeBlock((*fHandle).curPagePos, fHandle, memPage);
+}
+
+
+RC appendEmptyBlock (SM_FileHandle *fHandle){
+    
+    return 0;
+}
+
+
+RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
+    
+    return 0;
+}
