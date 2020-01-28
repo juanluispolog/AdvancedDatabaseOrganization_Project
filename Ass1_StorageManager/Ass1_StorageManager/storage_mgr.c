@@ -28,36 +28,31 @@ FILE *fp;
 
 
 extern void initStorageManager (void){
-    printf("Initializing the Store Manager");
-    printf("Store Manager initilized");
-    fp = NULL;
+    printf("Store Manager initialized");
+    free(fp);
 }
-
 
 RC createPageFile (char *fileName){
     
     //Opening the file in read/write mode
     fp = fopen(fileName, "w+");
-    
     if (fp != NULL) {
-        //Reserving space in memory for a new page (with size PAGE_SIZE)
+        //calloc() function initializes to zero a dynamic variable type SM_PageHandle
         SM_PageHandle newPage = (SM_PageHandle)calloc(PAGE_SIZE, sizeof(char));
-        
-        //Writing and checking if
-        if (fwrite(newPage, sizeof(SM_PageHandle), PAGE_SIZE, fp) < PAGE_SIZE) {
-            //free(newPage);
-            return RC_WRITE_FAILED;
+        //Writing the new page in memory
+        //Checking if the new page is correctly written
+        if(fwrite(newPage, sizeof(char), PAGE_SIZE, fp) == PAGE_SIZE){
+            fclose(fp);
+            free(newPage);
+            return RC_OK;
         }
-        else fclose(fp);
+        else return RC_WRITE_FAILED;
         
         return RC_OK;
-        
     }
     else return RC_FILE_NOT_FOUND;
     
 }
-
-
 
 extern RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     
