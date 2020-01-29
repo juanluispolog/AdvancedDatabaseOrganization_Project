@@ -215,8 +215,21 @@ RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 
 
 RC appendEmptyBlock (SM_FileHandle *fHandle){
-    
-    return 0;
+    //calloc() function initializes to zero a dynamic variable type SM_PageHandle
+    SM_PageHandle newPage = (SM_PageHandle)calloc(PAGE_SIZE, sizeof(char));
+    //Using writeBlock function for appendding the newPage at the end of the file (see writeBlock)
+    //If the write is OK, the increase the number of total pages of the file handle and free the
+    //dynamic variable newPage.
+    if(writeBlock((*fHandle).totalNumPages+1, fHandle, newPage) == RC_OK){
+        (*fHandle).totalNumPages++;
+        free(newPage);
+        return RC_OK;
+    }
+    else {
+        free(newPage);
+        return RC_WRITE_FAILED;
+    }
+       
 }
 
 
