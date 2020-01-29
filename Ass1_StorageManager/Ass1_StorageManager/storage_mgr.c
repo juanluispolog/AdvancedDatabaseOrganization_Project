@@ -235,5 +235,21 @@ RC appendEmptyBlock (SM_FileHandle *fHandle){
 
 RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
     
-    return 0;
+    if((*fHandle).mgmtInfo == NULL){
+        RC_message = "RC_FILE_HANDLE_NOT_INIT";
+        return RC_FILE_HANDLE_NOT_INIT;}
+
+    if((*fHandle).totalNumPages == numberOfPages){
+        RC_message = "FILE HAS SAME NUMBER OF PAGES";
+        return RC_OK;}
+    
+    else{
+        RC_message = "FILE HAS LESS NUMBER OF PAGES";
+        do{
+            appendEmptyBlock(fHandle);}
+        while(numberOfPages > (*fHandle).totalNumPages);
+        
+        RC_message = "PAGES HAVE BEEN ADDED AND FILE HAS SAME NUMBER OF PAGES";
+        return RC_OK;
+    }
 }
