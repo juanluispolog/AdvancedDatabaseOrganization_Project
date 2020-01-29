@@ -33,9 +33,8 @@ extern void initStorageManager (void){
 }
 
 RC createPageFile (char *fileName){
-    
     //Opening the file in read/write mode
-    fp = fopen(fileName, "w+");
+    fp = fopen(fileName, "wb+");
     if (fp != NULL) {
         //calloc() function initializes to zero a dynamic variable type SM_PageHandle
         SM_PageHandle newPage = (SM_PageHandle)calloc(PAGE_SIZE, sizeof(char));
@@ -87,7 +86,7 @@ extern RC openPageFile (char *fileName, SM_FileHandle *fHandle){
 }
 
 extern RC closePageFile (SM_FileHandle *fHandle){
-    
+    fp = fopen(fHandle->fileName, "r");
     if(fp != NULL){
         
         if((*fHandle).mgmtInfo == NULL){
@@ -152,7 +151,7 @@ int getBlockPos (SM_FileHandle *fHandle){
 }
 
 RC readFirstBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
-    RC firstBlock = readBlock(1, fHandle, memPage);
+    RC firstBlock = readBlock(0, fHandle, memPage);
     return firstBlock;
 }
 
