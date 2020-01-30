@@ -15,6 +15,7 @@
 #include "dberror.h"
 
 
+//File Pointer
 FILE *fp;
 
 
@@ -34,7 +35,7 @@ extern void initStorageManager (void){
 
 RC createPageFile (char *fileName){
     //Opening the file in read/write mode
-    fp = fopen(fileName, "wb+");
+    fp = fopen(fileName, "w+");
     if (fp != NULL) {
         //calloc() function initializes to zero a dynamic variable type SM_PageHandle
         SM_PageHandle newPage = (SM_PageHandle)calloc(PAGE_SIZE, sizeof(char));
@@ -46,79 +47,69 @@ RC createPageFile (char *fileName){
             return RC_OK;
         }
         else return RC_WRITE_FAILED;
-        
-        return RC_OK;
     }
     else return RC_FILE_NOT_FOUND;
-    
 }
 
 extern RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     
     fp = fopen(fileName,"r+");
     
-    if(fp == NULL){
-        RC_message = "FILE NOT FOUND";
-        return RC_FILE_NOT_FOUND;
-    }
-    
-    else{
-        
+    if(fp != NULL){
         // File Name
         (*fHandle).fileName = fileName;
         
-        // Total Number of Pages
-        fseek(fp,0,SEEK_END);               // SEEK_END denotes the end of the file
-        int lastByte = ftell(fp);           // ftell returns current fileposition
+        fseek(fp, 0, SEEK_END);         // fseek() move pointer to the end of file
+        int lastByte = ftell(fp);       // ftell() returns current file position
         int totalNumPages = lastByte / PAGE_SIZE;
-        rewind(fp);                         // set file position to the beginning
-        (*fHandle).totalNumPages = totalNumPages;
-        
-        // Current Page File Position
-        (*fHandle).curPagePos = 0;
-        
-        // mgmt Info
-        (*fHandle).mgmtInfo = fp;
-        
-        RC_message = "FILE OPENED CORRECTLY";
-        return RC_OK;
+        if(fseek(fp, 0, SEEK_SET) == 0){    // set file position to the beginning of file
+            // Writing information of the opened file
+            (*fHandle).totalNumPages = totalNumPages;
+            (*fHandle).curPagePos = 0;
+            (*fHandle).mgmtInfo = fp;
+//            RC_message = "FILE OPENED CORRECTLY";
+            return RC_OK;
+        }
+        else{
+            RC_message = "RC POINTER NOT SET TO BEGINNING OF FILE";
+            return RC_READ_NON_EXISTING_PAGE;
+        }
+    }
+    else{
+        RC_message = "FILE NOT FOUND";
+        return RC_FILE_NOT_FOUND;
     }
 }
 
+
 extern RC closePageFile (SM_FileHandle *fHandle){
-    fp = fopen(fHandle->fileName, "r");
-    if(fp != NULL){
-        
-        if((*fHandle).mgmtInfo == NULL){
-            RC_message = "RC_FILE_HANDLE_NOT_INIT";
-            return RC_FILE_HANDLE_NOT_INIT;
+    if((*fHandle).mgmtInfo != NULL){
+        if(fclose((*fHandle).mgmtInfo) == 0){ // if file is already closed then return 0
+            RC_message = "FILE CLOSED CORRECTLY";
+            return RC_OK;
         }
-        else{
-            fclose(fp);                   // close file
-            if(fclose((*fHandle).mgmtInfo)==0){ // if Handle is closed then return 0
-                RC_message = "FILE CLOSED CORRECTLY";
-                return RC_OK;}
+        else {
+            RC_message = "FILE NOT FOUND";
+            return RC_FILE_NOT_FOUND;
         }
     }
-    
-    RC_message = "FILE NOT FOUND";
-    return RC_FILE_NOT_FOUND;
+    else{
+        RC_message = "RC_FILE_HANDLE_NOT_INIT";
+        return RC_FILE_HANDLE_NOT_INIT;
+    }
 }
 
 
 extern RC destroyPageFile (char *fileName){
-
-    if(fileName != NULL){
-        if(remove(fileName)==0){
+    if(fileName != NULL){           //Checking if the argument is valid
+        if(remove(fileName) == 0){    //remove file with "fileName" name
             RC_message = "FILE REMOVED CORRECTLY";
             return RC_OK;
         }
     }
-    
     RC_message = "FILE NOT FOUND";
     return RC_FILE_NOT_FOUND;
 }
-
 
 
 //
@@ -128,6 +119,7 @@ extern RC destroyPageFile (char *fileName){
 //
 //
 //
+
 
 RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     if(fHandle->totalNumPages < pageNum)
@@ -146,30 +138,36 @@ RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     }
 }
 
+
 int getBlockPos (SM_FileHandle *fHandle){
     return fHandle->curPagePos;
 }
+
 
 RC readFirstBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
     RC firstBlock = readBlock(0, fHandle, memPage);
     return firstBlock;
 }
 
+
 RC readPreviousBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
     RC previousBlock = readBlock(fHandle->curPagePos - 1, fHandle, memPage);
     return previousBlock;
 }
+
 
 RC readCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
     RC currentBlock = readBlock(fHandle->curPagePos, fHandle, memPage);
     return currentBlock;
 }
 
+
 RC readNextBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
     RC nextBlock = readBlock(fHandle->curPagePos + 1, fHandle, memPage);
     return nextBlock;
     
 }
+
 
 RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
     RC lastBlock = readBlock(fHandle->totalNumPages, fHandle, memPage);
