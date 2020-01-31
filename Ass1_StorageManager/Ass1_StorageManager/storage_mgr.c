@@ -123,6 +123,8 @@ extern RC destroyPageFile (char *fileName){
 
 
 extern RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Checking if the pageNum is lower than the existing number of pages and
+    //if pageNum is greater than 0
     if((*fHandle).totalNumPages < pageNum || pageNum < 0){
         RC_message = "READ NON EXISTING PAGE";
         return RC_READ_NON_EXISTING_PAGE;
@@ -130,8 +132,11 @@ extern RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
     else{
         fp = fopen((*fHandle).fileName, "r");
         if (fp != NULL) {
+            //Setting the fp pointer to the "pageNum" block:
             if(fseek(fp, (pageNum*PAGE_SIZE), SEEK_SET) == 0){
+                //Reading the content of the given block
                 fread(memPage, sizeof(char), PAGE_SIZE, fp);
+                //Storing the current position of the pointer
                 (*fHandle).curPagePos = (int)ftell(fp)/PAGE_SIZE;
                 if(fclose(fp) == 0){
                     RC_message = "BLOCK CORRECTLY READ";
@@ -156,39 +161,43 @@ extern RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage)
 
 
 extern int getBlockPos (SM_FileHandle *fHandle){
+    //Using readBlock() function to get the current page position
     return (*fHandle).curPagePos;
 }
 
 
 extern RC readFirstBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Using readBlock() function to get the first page
     RC firstBlock = readBlock(0, fHandle, memPage);
     return firstBlock;
 }
 
 
 extern RC readPreviousBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Using readBlock() function to get the previous page
     RC previousBlock = readBlock((*fHandle).curPagePos - 1, fHandle, memPage);
     return previousBlock;
 }
 
 
 extern RC readCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Using readBlock() function to get the current page
     RC currentBlock = readBlock((*fHandle).curPagePos, fHandle, memPage);
     return currentBlock;
 }
 
 
 extern RC readNextBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Using readBlock() function to get the next page
     RC nextBlock = readBlock((*fHandle).curPagePos + 1, fHandle, memPage);
     return nextBlock;
-    
 }
 
 
 extern RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Using readBlock() function to get the last page
     RC lastBlock = readBlock((*fHandle).totalNumPages, fHandle, memPage);
     return lastBlock;
-    
 }
 
 
@@ -202,6 +211,8 @@ extern RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 
 
 extern RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Checking if the pageNum is lower than the existing number of pages and
+    //if pageNum is greater than 0
     if((*fHandle).totalNumPages < pageNum || pageNum < 0){
         RC_message = "WRITE FAILED";
         return RC_WRITE_FAILED;
@@ -209,8 +220,11 @@ extern RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage
     else{
         fp = fopen((*fHandle).fileName, "r+");
         if (fp != NULL) {
+            //Setting the fp pointer to the "pageNum" block:
             if(fseek(fp, (pageNum*PAGE_SIZE), SEEK_SET) == 0){
+                //Writing the given page to file
                 if(fwrite(memPage, sizeof(char), PAGE_SIZE, fp) == PAGE_SIZE){
+                    //Storing the current position of the pointer
                     (*fHandle).curPagePos = (int)ftell(fp)/PAGE_SIZE;
                     fclose(fp);
                     RC_message = "BLOCK WRITTEN";
@@ -235,6 +249,7 @@ extern RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage
 
 
 extern RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
+    //Using writeBlock() function to write a page to disk
     return writeBlock((*fHandle).curPagePos, fHandle, memPage);
 }
 
@@ -242,8 +257,8 @@ extern RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 extern RC appendEmptyBlock (SM_FileHandle *fHandle){
     //calloc() function initializes to zero a dynamic variable type SM_PageHandle
     SM_PageHandle newPage = (SM_PageHandle)calloc(PAGE_SIZE, sizeof(char));
-    //Using writeBlock function for appendding the newPage at the end of the file (see writeBlock)
-    //If the write is OK, the increase the number of total pages of the file handle and free the
+    //Using writeBlock function to append the newPage at the end of the file (see writeBlock)
+    //If the write is OK, it increases the number of total pages of the file handle and frees the
     //dynamic variable newPage.
     if(writeBlock((*fHandle).totalNumPages+1, fHandle, newPage) == RC_OK){
         (*fHandle).totalNumPages++;
@@ -264,11 +279,12 @@ extern RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
         RC_message = "RC_FILE_HANDLE_NOT_INIT";
         return RC_FILE_HANDLE_NOT_INIT;
     }
-
+    //If file has same number of pages
     if((*fHandle).totalNumPages == numberOfPages){
         RC_message = "FILE HAS SAME NUMBER OF PAGES";
         return RC_OK;
     }
+    //Else, empty blocks are added until the file has same number of pages
     else{
         RC_message = "FILE HAS LESS NUMBER OF PAGES";
         do{
