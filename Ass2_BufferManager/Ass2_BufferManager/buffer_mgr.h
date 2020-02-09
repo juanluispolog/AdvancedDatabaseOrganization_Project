@@ -33,6 +33,13 @@ typedef struct BM_PageHandle {
 	char *data;
 } BM_PageHandle;
 
+
+typedef struct PageInfo {
+    PageNumber pageNum;
+    char *data;
+} PageInfo;
+
+
 // convenience macros
 #define MAKE_POOL()					\
 		((BM_BufferPool *) malloc (sizeof(BM_BufferPool)))

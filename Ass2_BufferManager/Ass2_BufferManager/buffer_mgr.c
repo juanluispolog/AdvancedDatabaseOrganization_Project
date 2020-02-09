@@ -8,3 +8,17 @@
 
 #include <stdio.h>
 #include "buffer_mgr.h"
+#include "storage_mgr.h"
+
+
+RC forceFlushPool(BM_BufferPool *const bm){
+    
+    int i = 0;
+    for (i = 0; i < (*bm).numPages; i++) {
+        
+    }
+    
+    return 0;
+}
+
+
