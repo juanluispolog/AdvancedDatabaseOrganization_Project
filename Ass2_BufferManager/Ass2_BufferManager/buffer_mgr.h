@@ -38,8 +38,10 @@ typedef struct BM_PageHandle {
 // Each time a page is copied in the buffer, a new dynamic PageInfo variable will be created
 typedef struct PageInfo {
     bool dirty;
-    bool pin;
-    int pinnedPageNum;
+    bool pinned;
+    int fixCount;
+    PageNumber pageFrameNum;
+    BM_PageHandle *pageHandle;
 } PageInfo;
 
 
