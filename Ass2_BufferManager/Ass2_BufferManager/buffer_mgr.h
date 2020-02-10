@@ -34,9 +34,12 @@ typedef struct BM_PageHandle {
 } BM_PageHandle;
 
 
+// Struct that stores the pinned page info
+// Each time a page is copied in the buffer, a new dynamic PageInfo variable will be created
 typedef struct PageInfo {
-    PageNumber pageNum;
-    char *data;
+    bool dirty;
+    bool pin;
+    int pinnedPageNum;
 } PageInfo;
 
 
