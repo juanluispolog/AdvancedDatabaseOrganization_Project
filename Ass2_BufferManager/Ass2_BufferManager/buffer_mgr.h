@@ -34,15 +34,29 @@ typedef struct BM_PageHandle {
 } BM_PageHandle;
 
 
-// Struct that stores the pinned page info
-// Each time a page is copied in the buffer, a new dynamic PageInfo variable will be created
-typedef struct PageInfo {
+// Struct that stores the page frame info
+typedef struct PageFrame {
     bool dirty;
     bool pinned;
     int fixCount;
     PageNumber pageFrameNum;
     BM_PageHandle *pageHandle;
-} PageInfo;
+} PageFrame;
+
+// Struct that stores the
+
+typedef struct FIFO_Manager {
+    void *PageID;
+    void *fifoQueue;
+    void *fifoPageFrames;
+} FIFO_Manager;
+
+
+typedef struct LRU_Manager {
+    void *PageID;
+    void *lruQueue;
+    void *lruPageFrames;
+} LRU_Manager;
 
 
 // convenience macros
