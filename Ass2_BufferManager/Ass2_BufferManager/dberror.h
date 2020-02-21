@@ -27,6 +27,12 @@ typedef int RC;
 #define RC_IM_N_TO_LAGE 302
 #define RC_IM_NO_MORE_ENTRIES 303
 
+#define RC_NOT_FOUND_IN_PINNED_QUEUE 400
+#define RC_NOT_FOUND_IN_UNPINNED_QUEUE 401
+#define RC_PAGE_FRAME_NOT_FOUND 402
+#define RC_ERROR_WHEN_PINNING_PAGE 403
+#define RC_NOT_AVAILABLE_SPACE_IN_BUFFER 403
+
 /* holder for error messages */
 extern char *RC_message;
 

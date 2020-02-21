@@ -11,7 +11,6 @@
 		82A0F34223E63C1E00771883 /* dberror.c in Sources */ = {isa = PBXBuildFile; fileRef = 82A0F33B23E63C1E00771883 /* dberror.c */; };
 		82A0F34323E63C1E00771883 /* storage_mgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 82A0F33C23E63C1E00771883 /* storage_mgr.c */; };
 		82A0F34423E63C1E00771883 /* test_assign2_1.c in Sources */ = {isa = PBXBuildFile; fileRef = 82A0F33F23E63C1E00771883 /* test_assign2_1.c */; };
-		82A0F34523E63C1E00771883 /* test_assign2_2.c in Sources */ = {isa = PBXBuildFile; fileRef = 82A0F34023E63C1E00771883 /* test_assign2_2.c */; };
 		82A0F34723E63C4100771883 /* buffer_mgr.c in Sources */ = {isa = PBXBuildFile; fileRef = 82A0F34623E63C4100771883 /* buffer_mgr.c */; };
 /* End PBXBuildFile section */
 
@@ -39,7 +38,6 @@
 		82A0F33D23E63C1E00771883 /* buffer_mgr_stat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = buffer_mgr_stat.h; sourceTree = "<group>"; };
 		82A0F33E23E63C1E00771883 /* storage_mgr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = storage_mgr.h; sourceTree = "<group>"; };
 		82A0F33F23E63C1E00771883 /* test_assign2_1.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_assign2_1.c; sourceTree = "<group>"; };
-		82A0F34023E63C1E00771883 /* test_assign2_2.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test_assign2_2.c; sourceTree = "<group>"; };
 		82A0F34623E63C4100771883 /* buffer_mgr.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = buffer_mgr.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -83,7 +81,6 @@
 				82A0F33C23E63C1E00771883 /* storage_mgr.c */,
 				82A0F33E23E63C1E00771883 /* storage_mgr.h */,
 				82A0F33F23E63C1E00771883 /* test_assign2_1.c */,
-				82A0F34023E63C1E00771883 /* test_assign2_2.c */,
 				82A0F33723E63C1E00771883 /* test_helper.h */,
 			);
 			path = Ass2_BufferManager;
@@ -150,7 +147,6 @@
 				82A0F34223E63C1E00771883 /* dberror.c in Sources */,
 				82A0F34723E63C4100771883 /* buffer_mgr.c in Sources */,
 				82A0F34123E63C1E00771883 /* buffer_mgr_stat.c in Sources */,
-				82A0F34523E63C1E00771883 /* test_assign2_2.c in Sources */,
 				82A0F34423E63C1E00771883 /* test_assign2_1.c in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

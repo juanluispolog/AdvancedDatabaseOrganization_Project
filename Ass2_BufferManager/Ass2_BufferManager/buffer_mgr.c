@@ -8,6 +8,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include "buffer_mgr.h"
 #include "storage_mgr.h"
 
@@ -25,14 +26,14 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
                   void *stratData){
     int i = 0;
     
-    SM_FileHandle *fHandle = (SM_FileHandle *)malloc(sizeof(SM_FileHandle));
+    SM_FileHandle *fHandle = NULL;
     FIFO_Manager *fifoManager = (FIFO_Manager *)malloc(sizeof(FIFO_Manager));
     LRU_Manager *lruManager = (LRU_Manager *)malloc(sizeof(LRU_Manager));
 
     if(openPageFile(pageFileName, fHandle) == RC_OK){
-        (*bm).pageFile = pageFileName;
-        (*bm).numPages = numPages;
-        (*bm).strategy = strategy;
+        bm->pageFile = pageFileName;
+        bm->numPages = numPages;
+        bm->strategy = strategy;
     
         //Initilizing pages to Null values
         PageFrame *pageFrame = (PageFrame *)malloc(numPages * sizeof(PageFrame));
@@ -47,39 +48,43 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
             count++;
         }
         
-        
-        
         if (strategy == RS_FIFO){
             //Bookeeping page info
-            (*fifoManager).fifoPageFrames = pageFrame;
+            fifoManager->fifoPageFrames = pageFrame;
             
-            int *fifoID = (int *)malloc(numPages * sizeof(int));
-            int *fifoQueue = (int *)malloc(numPages * sizeof(int));
+            int *llenos = (int *)malloc(numPages * sizeof(int));
+            int *vacios = (int *)malloc(numPages * sizeof(int));
+            
+            fifoManager->readCount = 0;
+            fifoManager->writeCount = 0;
             
             for(i=0; i<numPages; i++){
-                fifoID[count] = -1;
-                fifoQueue[count] = -1;
+                llenos[count] = -1;
+                vacios[count] = i;
             }
-            (*fifoManager).PageID = fifoID;
-            (*fifoManager).fifoQueue = fifoQueue;
+            fifoManager->llenos = llenos;
+            fifoManager->vacios = vacios;
             
-            (*bm).mgmtData = fifoManager;
+            bm->mgmtData = fifoManager;
         }
         
         if (strategy == RS_LRU){
-            (*lruManager).lruPageFrames = pageFrame;
+            lruManager->lruPageFrames = pageFrame;
             
-            int *lruID = (int *)malloc(numPages * sizeof(int));
-            int *lruQueue = (int *)malloc(numPages * sizeof(int));
+            int *index = (int *)malloc(numPages * sizeof(int));
+//            int *lruQueue = (int *)malloc(numPages * sizeof(int));
+            
+            lruManager->readCount = 0;
+            lruManager->writeCount = 0;
             
             for(i=0; i<numPages; i++){
-                lruID[count] = -1;
-                lruQueue[count] = -1;
+                index[count] = -1;
+//                lruQueue[count] = -1;
             }
-            (*lruManager).PageID = lruID;
-            (*lruManager).lruQueue = lruQueue;
+            lruManager->index = index;
+//            (*lruManager).lruQueue = lruQueue;
             
-            (*bm).mgmtData = lruManager;
+            bm->mgmtData = lruManager;
         }
         
         free(fHandle);
@@ -94,31 +99,34 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
 
 
 RC forceFlushPool(BM_BufferPool *const bm){
-    
-    PageFrame *pageFrame = (*bm).mgmtData;
+//
+//    PageFrame *pageFrame = (*bm).mgmtData;
+//
+    FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
+    PageFrame *pageFrames = (PageFrame *) fifoManager->fifoPageFrames;
     
     int count = 0;
-    
-    while(count<(*bm).numPages){
+    while(count<(bm->numPages)){
         
-        if((*pageFrame).fixCount == 0){
+        if(pageFrames[count].fixCount == 0){
             
-            if((*pageFrame).dirty == 1){
+            if(pageFrames[count].dirty == 1){
                 
-                SM_FileHandle *fHandle = malloc(sizeof(SM_FileHandle));
-                if(openPageFile((*bm).pageFile, fHandle)==RC_OK){
-                    
-                    writeBlock(pageFrame[count].pageHandle->pageNum, fHandle, pageFrame[count].pageHandle->data);
-                    pageFrame[count].dirty = 0;
-                    count++;
-                }
-                free(fHandle);
+                forcePage(bm, pageFrames[count].pageHandle);
+                
+//                SM_FileHandle *fHandle = malloc(sizeof(SM_FileHandle));
+//                if(openPageFile(bm->pageFile, fHandle)==RC_OK){
+//
+//                    writeBlock(pageFrames[count].pageHandle->pageNum, fHandle, pageFrames[count].pageHandle->data);
+//                    pageFrames[count].dirty = 0;
+//                    count++;
+//                }
+//                free(fHandle);
                 
             }
         }
     }
     
-    free(pageFrame);
     return RC_OK;
 }
 
@@ -143,71 +151,62 @@ RC shutdownBufferPool(BM_BufferPool *const bm){
     free(pageFrame);
     free((*bm).mgmtData);
     
-    
     return RC_OK;
     
 }
 
 
 
-
-
-
-
-
-
+//
+//
+//
+/* Buffer Manager Interface Access Pages */
+//
+//
+//
 
 RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page){
     
-    PageFrame *pageFrames = (PageFrame *)malloc((*bm).numPages * sizeof(PageFrame));
+    PageFrame *pageFrames = NULL;
 
     if ((*bm).strategy == RS_FIFO){
-        //        PageFrame *pageFrame = (PageFrame *)malloc((*bm).numPages * sizeof(PageFrame));
-        //        pageFrame = (*bm).mgmtData->fifoPageFrames;
-        FIFO_Manager *fifoManager = (*bm).mgmtData;
+        FIFO_Manager *fifoManager = bm->mgmtData;
         pageFrames = fifoManager->fifoPageFrames;
     }
         
         
     if ((*bm).strategy == RS_LRU){
-        LRU_Manager *lruManager = (*bm).mgmtData;
+        LRU_Manager *lruManager = bm->mgmtData;
         pageFrames = lruManager->lruPageFrames;
     }
     
     int i=0;
     PageNumber searchedPage = page->pageNum;
     
-    for (i=0; i<(*bm).numPages; i++) {
+    for (i=0; i<(bm->numPages); i++) {
         if(pageFrames[i].pageHandle->pageNum == searchedPage){
             pageFrames[i].dirty = 1;
         }
     }
     
     return RC_OK;
-    
-// HAY QUE HACER FREE DE LOS PUNTEROS
-    
 }
-
-
-
-
-
 
 
 RC forcePage (BM_BufferPool *const bm, BM_PageHandle *const page){
     
-    
-    PageFrame *pageFrames = (PageFrame *)malloc((*bm).numPages * sizeof(PageFrame));
-    SM_FileHandle *fHandle = malloc(sizeof(SM_FileHandle));
+    PageFrame *pageFrames = NULL;
+    SM_FileHandle *fHandle = NULL;
+    FIFO_Manager *fifoManager = NULL;
+    LRU_Manager *lruManager = NULL;
     
     if ((*bm).strategy == RS_FIFO){
-        FIFO_Manager *fifoManager = (*bm).mgmtData;
+        fifoManager = (*bm).mgmtData;
         pageFrames = fifoManager->fifoPageFrames;
     }
         
     if ((*bm).strategy == RS_LRU){
-        LRU_Manager *lruManager = (*bm).mgmtData;
+        lruManager = (*bm).mgmtData;
         pageFrames = lruManager->lruPageFrames;
     }
     
@@ -217,12 +216,399 @@ RC forcePage (BM_BufferPool *const bm, BM_PageHandle *const page){
     if(openPageFile((*bm).pageFile, fHandle) == RC_OK){
         for (i=0; i<(*bm).numPages; i++) {
             if(pageFrames[i].pageHandle->pageNum == searchedPage){
-                    writeBlock(pageFrames[i].pageHandle->pageNum, fHandle, pageFrames[i].pageHandle->data);
+                if(writeBlock(pageFrames[i].pageHandle->pageNum, fHandle, pageFrames[i].pageHandle->data) == RC_OK){
+                    pageFrames[i].dirty = 0;
+                    if ((*bm).strategy == RS_FIFO){
+                        fifoManager->writeCount++;
+                    }
+                        
+                    if ((*bm).strategy == RS_LRU){
+                        lruManager->writeCount++;
+                    }
+                }
             }
         }
+        closePageFile(fHandle);
     }
     
-    free(pageFrames);
     return RC_OK;
     
 }
+
+
+
+
+RC unpinPage (BM_BufferPool *const bm, BM_PageHandle *const page){
+    
+    if (bm->strategy == RS_FIFO) {
+        unpinPageFIFO(bm, page);
+    }
+    
+    if (bm->strategy == RS_LRU) {
+        LRU_Manager *lruManager = (LRU_Manager *)bm->mgmtData;
+//        int *index = (int *)lruManager->index;
+    }
+    
+    return 0;
+}
+
+
+
+
+RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
+            const PageNumber pageNum){
+   
+    if (bm->strategy == RS_FIFO) {
+        pinPageFIFO(bm, page, pageNum);
+    }
+    
+    if (bm->strategy == RS_LRU) {
+        pinPageLRU(bm, page, pageNum);
+    }
+    
+//    // Pegamos la copia del llenos modificada en el struct fifoManager
+//    fifoManager->llenos = llenos;
+//    // Pegamos la copia del vacios modificada en el struct fifoManager
+//    fifoManager->vacios = vacios;
+//    // Pegamos la copia local del pageFrames modificada en el struct fifoManager
+//    fifoManager->fifoPageFrames = pageFrames;
+//    // Como fifoManager es una copia, volvemos a copiarla en el struct bm
+//    bm->mgmtData = fifoManager;
+    
+    return 0;
+}
+
+
+
+//
+//
+//
+/* Statistic Interface */
+//
+//
+//
+
+PageNumber *getFrameContents (BM_BufferPool *const bm){
+    
+    PageFrame *pageFrames = NULL;
+    
+    if ((*bm).strategy == RS_FIFO){
+        FIFO_Manager *fifoManager = (*bm).mgmtData;
+        pageFrames = fifoManager->fifoPageFrames;
+    }
+        
+    if ((*bm).strategy == RS_LRU){
+        LRU_Manager *lruManager = (*bm).mgmtData;
+        pageFrames = lruManager->lruPageFrames;
+    }
+    
+    int *frameContents = (int *)malloc((bm->numPages)*sizeof(int));
+    int i = 0;
+    for (i=0; i<(bm->numPages); i++) {
+        frameContents[i] = pageFrames[i].pageHandle->pageNum;
+    }
+    
+    return frameContents;
+}
+
+
+bool *getDirtyFlags (BM_BufferPool *const bm){
+    
+    PageFrame *pageFrames = NULL;
+    
+    if ((*bm).strategy == RS_FIFO){
+        FIFO_Manager *fifoManager = (*bm).mgmtData;
+        pageFrames = fifoManager->fifoPageFrames;
+    }
+        
+    if ((*bm).strategy == RS_LRU){
+        LRU_Manager *lruManager = (*bm).mgmtData;
+        pageFrames = lruManager->lruPageFrames;
+    }
+    
+    bool *dirtyFlags = (bool *)malloc((bm->numPages)*sizeof(bool));
+    int i = 0;
+    for (i=0; i<(bm->numPages); i++) {
+        if (pageFrames[i].dirty == 1) {
+            dirtyFlags[i] = true;
+        }
+        else{
+            dirtyFlags[i] = false;
+        }
+        
+    }
+    
+    return dirtyFlags;
+}
+
+
+
+
+int *getFixCounts (BM_BufferPool *const bm){
+    PageFrame *pageFrames = NULL;
+    
+    if ((*bm).strategy == RS_FIFO){
+        FIFO_Manager *fifoManager = (*bm).mgmtData;
+        pageFrames = fifoManager->fifoPageFrames;
+    }
+        
+    if ((*bm).strategy == RS_LRU){
+        LRU_Manager *lruManager = (*bm).mgmtData;
+        pageFrames = lruManager->lruPageFrames;
+    }
+    
+    int *fixCounts = (int *)malloc((bm->numPages)*sizeof(int));
+    int i = 0;
+    for (i=0; i<(bm->numPages); i++) {
+        fixCounts[i] = pageFrames[i].pageHandle->pageNum;
+        if (fixCounts[i] == -1) {
+            fixCounts[i] = 0;
+        }
+        else fixCounts[i] = pageFrames[i].fixCount;
+    }
+    
+    return fixCounts;
+}
+
+
+
+int getNumReadIO (BM_BufferPool *const bm){
+    
+    int readCounts = 0;
+    
+    if ((*bm).strategy == RS_FIFO){
+        FIFO_Manager *fifoManager = (*bm).mgmtData;
+        readCounts = fifoManager->readCount;
+    }
+        
+    if ((*bm).strategy == RS_LRU){
+        LRU_Manager *lruManager = (*bm).mgmtData;
+        readCounts = lruManager->readCount;
+    }
+    
+    return readCounts;
+}
+
+
+
+int getNumWriteIO (BM_BufferPool *const bm){
+    int writeCounts = 0;
+    
+    if ((*bm).strategy == RS_FIFO){
+        FIFO_Manager *fifoManager = (*bm).mgmtData;
+        writeCounts = fifoManager->writeCount;
+    }
+        
+    if ((*bm).strategy == RS_LRU){
+        LRU_Manager *lruManager = (*bm).mgmtData;
+        writeCounts = lruManager->writeCount;
+    }
+    
+    return writeCounts;
+}
+
+
+
+
+
+
+
+
+
+//
+//
+//
+/* Other Needed Functions*/
+//
+//
+//
+
+
+int searchPageFramePosition(BM_BufferPool *const bm, const PageNumber pageNum){
+
+    FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
+    PageFrame *pageFrames = (PageFrame *) fifoManager->fifoPageFrames;
+    
+    int index=0;
+    while(pageNum != pageFrames[index].pageHandle->pageNum){
+        index++;
+        if (index >= bm->numPages) {
+            return NO_PAGE;
+        }
+    }
+    return index;
+}
+
+
+
+
+RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
+                const PageNumber pageNum){
+    
+    SM_FileHandle *fHandle = NULL;
+    FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
+    PageFrame *pageFrames = (PageFrame *) fifoManager->fifoPageFrames;
+    int *llenos = (int *)fifoManager->llenos;
+    int *vacios = (int *)fifoManager->vacios;
+    
+//    // buscar la pagina en el buffer a ver si esta ya pinneada
+//    int i = 0, pinned = 0;
+//    for (i=0; i<(bm->numPages); i++) {
+//        if(pageFrames[i].pageHandle->pageNum == pageNum){
+//            pinned = 1;
+//            break;
+//        }
+//    }
+    
+    // busco en el pageFrames el pageNum que quiero unpinnear
+    int searchedPage = searchPageFramePosition(bm, pageNum);
+    if (searchedPage != -1){
+        pageFrames[searchedPage].fixCount++;
+        RC_message = "RC_ALREADY_PINNED_PAGE";
+        return RC_OK;
+    }
+    
+//    if(pinned == 1){ // si ya esta en el buffer
+//        pageFrames[i].fixCount++;
+//        RC_message = "RC_ALREADY_PINNED_PAGE";
+//        return RC_OK;
+//        // hay que devolver el data
+//    }
+    else{ // si no esta en el buffer
+        
+        if(vacios[0] != -1){ // si hay algun espacio en el buffer libre,
+            // encolo la posicion en llenos
+            int j = 0;
+            while (llenos[j] != -1) {
+                j++;
+            }
+            llenos[j] = vacios[0];
+            
+            // desplazo los valores en la cola de vacios y meto un -1 al final
+            int k = 0;
+            for (k=0; k<(bm->numPages)-1; k++) {
+                vacios[k] = vacios[k+1];
+            }
+            k++;
+            vacios[k] = -1;
+            
+            // ponemos la nueva información del pageFrame
+            pageFrames[llenos[j]].dirty = 0;
+            pageFrames[llenos[j]].fixCount = 1;
+            pageFrames[llenos[j]].pinned = 1;
+            pageFrames[llenos[j]].pageFrameNum = llenos[j];
+            pageFrames[llenos[j]].pageHandle->pageNum = pageNum;
+            if(readBlock(pageNum, fHandle, pageFrames[llenos[j]].pageHandle->data) == RC_OK){
+                fifoManager->readCount++;
+                RC_message = "RC_FIRST_TIME_PINNED_PAGE";
+                return RC_OK;
+            }
+            else{
+                RC_message = "ERROR AL PEGAR PAGE";
+                return RC_ERROR_WHEN_PINNING_PAGE;
+            }
+        }
+        
+        
+        else{ // no hay hueco en el buffer
+            
+            int j = 0, flag = 0;
+            for (j=0; j<(bm->numPages); j++) {
+                if(pageFrames[llenos[j]].fixCount == 0){
+                    if (pageFrames[llenos[j]].dirty == 1) {
+                        forcePage(bm, pageFrames[llenos[j]].pageHandle);
+                    }
+                    flag = 1;
+                    break;
+                }
+            }
+            
+            if (flag == 0) { // si no hay hueco en el buffer
+                // todos los fixCount son mayores que 0
+                RC_message = "NO AVAILABLE SPACE IN BUFFER";
+                return RC_NOT_AVAILABLE_SPACE_IN_BUFFER;
+            }
+            
+            // si hay algun hueco en el buffer:
+            
+            // modificamos el vector de llenos desplazandolo a la izq
+            int k = 0, freeIndex = llenos[j];
+            for (k=j; k<(bm->numPages)-1; j++) {
+                llenos[k] = llenos[k+1];
+            }
+            k++;
+            llenos[k] = freeIndex;
+            
+            // ponemos la nueva información del pageFrame
+            pageFrames[freeIndex].dirty = 0;
+            pageFrames[freeIndex].fixCount = 1;
+            pageFrames[freeIndex].pinned = 1;
+            pageFrames[freeIndex].pageFrameNum = freeIndex;
+            pageFrames[freeIndex].pageHandle->pageNum = page->pageNum;
+            if(readBlock(page->pageNum, fHandle, pageFrames[freeIndex].pageHandle->data) == RC_OK){
+                fifoManager->readCount++;
+                RC_message = "RC_FIRST_TIME_PINNED_PAGE";
+                return RC_OK;
+            }
+            else{
+                RC_message = "ERROR AL PEGAR PAGE";
+                return RC_ERROR_WHEN_PINNING_PAGE;
+            }
+            
+        }
+        
+    }
+    
+}
+
+
+
+
+RC unpinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page){
+
+    FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
+    int *llenos = (int *)fifoManager->llenos;
+    int *vacios = (int *)fifoManager->vacios;
+
+    // busco en el pageFrames el pageNum que quiero unpinnear
+    int freeFrame = searchPageFramePosition(bm, page->pageNum);
+    if (freeFrame == -1){
+        RC_message = "RC_NOT_FOUND_IN_PINNED_QUEUE";
+        return RC_NOT_FOUND_IN_PINNED_QUEUE;
+    }
+    
+    // modificamos el struct que almacena la informacion del pageFrame
+    PageFrame *pageFrames = (PageFrame *)fifoManager->fifoPageFrames;
+    if (pageFrames[freeFrame].fixCount-- == 0) {
+        pageFrames[freeFrame].pinned = 0;
+    }
+    
+    if (pageFrames[freeFrame].pinned == 0){
+        // busco en llenos el index que quiero unpinnear
+        int i = 0, j = 0, k = 0;
+        while (llenos[i] != freeFrame) {
+            i++;
+        }
+
+        // Modifico la cola de llenos a partir del valor que busco
+        for (j=i; j<(bm->numPages)-1; j++) {
+            llenos[j] = llenos[j+1];
+        }
+        j++;
+        llenos[j] = -1;
+
+        // Metemos en el primer -1 de unpinned el valor del index del page que liberamos
+        while (vacios[k] != -1) {
+            k++;
+        }
+        vacios[k] = freeFrame;
+    }
+    
+    RC_message = "RC_OK";
+    return RC_OK;
+
+
+}
+
+
+

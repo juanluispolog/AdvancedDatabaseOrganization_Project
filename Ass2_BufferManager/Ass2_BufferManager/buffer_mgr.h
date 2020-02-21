@@ -46,15 +46,19 @@ typedef struct PageFrame {
 // Struct that stores the
 
 typedef struct FIFO_Manager {
-    void *PageID;
-    void *fifoQueue;
+    void *llenos;
+    void *vacios;
+    int readCount;
+    int writeCount;
     void *fifoPageFrames;
 } FIFO_Manager;
 
 
 typedef struct LRU_Manager {
-    void *PageID;
-    void *lruQueue;
+//    void *PageID;
+    void *index;
+    int readCount;
+    int writeCount;
     void *lruPageFrames;
 } LRU_Manager;
 
@@ -86,5 +90,12 @@ bool *getDirtyFlags (BM_BufferPool *const bm);
 int *getFixCounts (BM_BufferPool *const bm);
 int getNumReadIO (BM_BufferPool *const bm);
 int getNumWriteIO (BM_BufferPool *const bm);
+
+
+// Nuestras funciones
+int searchPageFramePosition(BM_BufferPool *const bm, const PageNumber pageNum);
+RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum);
+RC unpinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page);
+RC pinPageLRU (BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum);
 
 #endif
