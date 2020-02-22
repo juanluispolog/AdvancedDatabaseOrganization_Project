@@ -63,14 +63,14 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
             fifoManager->writeCount = 0;
             
             for(i=0; i<numPages; i++){
-                llenos[count] = -1;
-                vacios[count] = i;
+                llenos[i] = -1;
+                vacios[i] = i;
             }
             fifoManager->llenos = llenos;
             fifoManager->vacios = vacios;
-            
-            free(llenos);
-            free(vacios);
+//
+//            free(llenos);
+//            free(vacios);
             
             bufferManager->mgmtData = fifoManager;
         }
@@ -93,8 +93,10 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
             
             bufferManager->mgmtData = lruManager;
         }
-        
-        free(fHandle);
+//        free(fHandle);
+//        free(fifoManager);
+//        free(lruManager);
+//        free(bufferManager);
         RC_message = "BUFFER_POOL_INIT";
         return RC_OK;
     }
@@ -140,23 +142,27 @@ RC forceFlushPool(BM_BufferPool *const bm){
 
 RC shutdownBufferPool(BM_BufferPool *const bm){
     
-    PageFrame *pageFrame = (*bm).mgmtData;
+    FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
+    PageFrame *pageFrames = (PageFrame *) fifoManager->fifoPageFrames;
     
     //Using function forceFlushPool() for write to disk all dirty pages in buffer befor erasing the buffer
     forceFlushPool(bm);
     
     //Check if there is any page that is being pinned by any user(s)
     int i = 0;
-    while (i < (*bm).numPages) {
-        if ((*pageFrame).pinned == 1) {
+    while (i < (bm->numPages)) {
+        if (pageFrames[i].pinned == 1) {
             RC_message = "RC PINNED PAGE";
             return RC_IM_KEY_NOT_FOUND;
         }
     }
     
-    //If there is no used page frames, then erase all variables related too buffer pool
-    free(pageFrame);
-    free((*bm).mgmtData);
+    //If there is no used page frames, then erase all variables related to buffer pool
+    free(pageFrames);
+    free(fifoManager);
+    free(bm);
+    
+    printf("hola");
     
     return RC_OK;
     
@@ -454,10 +460,12 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
     
     SM_FileHandle *fHandle;
     FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
-    BM_PageHandle *pageFrame = page;
+//    BM_PageHandle *pageFrame = page;
     PageFrame *pageFrames = (PageFrame *) fifoManager->fifoPageFrames;
     int *llenos = (int *)fifoManager->llenos;
     int *vacios = (int *)fifoManager->vacios;
+    
+    printf("pinneo pagina\n");
     
 //    // buscar la pagina en el buffer a ver si esta ya pinneada
 //    int i = 0, pinned = 0;
@@ -475,30 +483,26 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
         RC_message = "RC_ALREADY_PINNED_PAGE";
         return RC_OK;
     }
-    
-//    if(pinned == 1){ // si ya esta en el buffer
-//        pageFrames[i].fixCount++;
-//        RC_message = "RC_ALREADY_PINNED_PAGE";
-//        return RC_OK;
-//        // hay que devolver el data
-//    }
     else{ // si no esta en el buffer
         
         if(vacios[0] != -1){ // si hay algun espacio en el buffer libre,
             // encolo la posicion en llenos
             int j = 0;
             while (llenos[j] != -1) {
+                printf("llenos[%d]=%d\n",j, llenos[j]);
                 j++;
             }
             llenos[j] = vacios[0];
             
             // desplazo los valores en la cola de vacios y meto un -1 al final
-            int k = 0;
+            long int k = 0;
             for (k=0; k<(bm->numPages)-1; k++) {
                 vacios[k] = vacios[k+1];
             }
-            k++;
             vacios[k] = -1;
+            
+            printf("llenos: %d, no esta en el buffer y hay espacio\n", llenos[j]);
+            printf("vacios: %d\n", vacios[2]);
             
             // ponemos la nueva información del pageFrame
             pageFrames[llenos[j]].dirty = 0;
@@ -506,6 +510,7 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
             pageFrames[llenos[j]].pinned = 1;
             pageFrames[llenos[j]].pageFrameNum = llenos[j];
             pageFrames[llenos[j]].pageHandle.pageNum = pageNum;
+           
             
             SM_PageHandle content = (SM_PageHandle)malloc(PAGE_SIZE);
             openPageFile(bm->pageFile, fHandle);
@@ -549,8 +554,9 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
             for (k=j; k<(bm->numPages)-1; j++) {
                 llenos[k] = llenos[k+1];
             }
-            k++;
             llenos[k] = freeIndex;
+            
+            printf("llenos: %d, no esta en el buffer y no hay hueco\n", llenos[0]);
             
             // ponemos la nueva información del pageFrame
             pageFrames[freeIndex].dirty = 0;
@@ -558,7 +564,10 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
             pageFrames[freeIndex].pinned = 1;
             pageFrames[freeIndex].pageFrameNum = freeIndex;
             pageFrames[freeIndex].pageHandle.pageNum = page->pageNum;
-            if(readBlock(page->pageNum, fHandle, pageFrames[freeIndex].pageHandle.data) == RC_OK){
+            
+            SM_PageHandle content = (SM_PageHandle)malloc(PAGE_SIZE);
+            openPageFile(bm->pageFile, fHandle);
+            if(readBlock(page->pageNum, fHandle, content) == RC_OK){
                 fifoManager->readCount++;
                 RC_message = "RC_FIRST_TIME_PINNED_PAGE";
                 return RC_OK;
@@ -579,6 +588,8 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
 
 RC unpinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page){
 
+    printf("despinneo pagina\n");
+    
     FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
     int *llenos = (int *)fifoManager->llenos;
     int *vacios = (int *)fifoManager->vacios;
