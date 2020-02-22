@@ -63,8 +63,8 @@ testCreatingAndReadingDummyPages (void)
   createDummyPages(bm, 22);
   checkDummyPages(bm, 20);
 
-//  createDummyPages(bm, 10000);
-//  checkDummyPages(bm, 10000);
+  createDummyPages(bm, 10000);
+  checkDummyPages(bm, 10000);
 
   CHECK(destroyPageFile("testbuffer.bin"));
 
@@ -86,7 +86,7 @@ createDummyPages(BM_BufferPool *bm, int num)
       CHECK(pinPage(bm, h, i));
       sprintf(h->data, "%s-%i", "Page", h->pageNum);
       CHECK(markDirty(bm, h));
-      CHECK(unpinPage(bm,h));
+      CHECK(unpinPage(bm, h));
     }
 
   CHECK(shutdownBufferPool(bm));
