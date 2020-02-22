@@ -7,6 +7,8 @@
 // Include bool DT
 #include "dt.h"
 
+
+
 // Replacement Strategies
 typedef enum ReplacementStrategy {
 	RS_FIFO = 0,
@@ -40,7 +42,7 @@ typedef struct PageFrame {
     bool pinned;
     int fixCount;
     PageNumber pageFrameNum;
-    BM_PageHandle *pageHandle;
+    BM_PageHandle pageHandle;
 } PageFrame;
 
 // Struct that stores the

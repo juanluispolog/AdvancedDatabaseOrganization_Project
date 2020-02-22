@@ -57,7 +57,7 @@ extern RC openPageFile (char *fileName, SM_FileHandle *fHandle){
     
     if(fp != NULL){
         // File Name
-        (*fHandle).fileName = fileName;
+        fHandle->fileName = fileName;
         
         fseek(fp, 0, SEEK_END);         // fseek() move pointer to the end of file
         int lastByte = ftell(fp);       // ftell() returns current file position

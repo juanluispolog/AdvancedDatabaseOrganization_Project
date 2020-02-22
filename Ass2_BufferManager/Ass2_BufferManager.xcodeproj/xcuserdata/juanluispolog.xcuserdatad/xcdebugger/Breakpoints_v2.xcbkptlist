@@ -14,8 +14,8 @@
             filePath = "Ass2_BufferManager/buffer_mgr.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "43"
-            endingLineNumber = "43"
+            startingLineNumber = "45"
+            endingLineNumber = "45"
             landmarkName = "initBufferPool(bm, pageFileName, numPages, strategy, stratData)"
             landmarkType = "9">
          </BreakpointContent>
@@ -30,10 +30,10 @@
             filePath = "Ass2_BufferManager/buffer_mgr.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "185"
-            endingLineNumber = "185"
-            landmarkName = "markDirty(bm, page)"
-            landmarkType = "9">
+            startingLineNumber = "202"
+            endingLineNumber = "202"
+            landmarkName = "unknown"
+            landmarkType = "0">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -46,9 +46,264 @@
             filePath = "Ass2_BufferManager/buffer_mgr.c"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "180"
-            endingLineNumber = "180"
+            startingLineNumber = "197"
+            endingLineNumber = "197"
             landmarkName = "markDirty(bm, page)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "51DA43B6-17D7-4F1F-849D-C843AD57AF29"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/storage_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "57"
+            endingLineNumber = "57"
+            landmarkName = "openPageFile(fileName, fHandle)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "55FB6165-AF53-4A81-AC4D-789C28FDA749"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/buffer_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "517"
+            endingLineNumber = "517"
+            landmarkName = "pinPageFIFO(bm, page, pageNum)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D97F4DA2-B16E-496D-88C7-620A8082E1B2"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/buffer_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "512"
+            endingLineNumber = "512"
+            landmarkName = "pinPageFIFO(bm, page, pageNum)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "4C1ACEA4-6121-4250-87A0-C3A8B97A9EB4"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/test_assign2_1.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "87"
+            endingLineNumber = "87"
+            landmarkName = "createDummyPages(bm, num)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "16DAAD4B-412A-45B8-A1E6-2DAA8F26C5A8"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/buffer_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "513"
+            endingLineNumber = "513"
+            landmarkName = "pinPageFIFO(bm, page, pageNum)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0B94BDC6-2ADD-4D92-9EF2-CB5F6E712664"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/test_assign2_1.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "86"
+            endingLineNumber = "86"
+            landmarkName = "createDummyPages(bm, num)"
+            landmarkType = "9">
+            <Locations>
+               <Location
+                  uuid = "0B94BDC6-2ADD-4D92-9EF2-CB5F6E712664 - 3b323e852dbb9d59"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "createDummyPages"
+                  moduleName = "Ass2_BufferManager"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/juanluispolog/OneDrive%20-%20Universidad%20Polite%CC%81cnica%20de%20Madrid/JUAN%20LUIS/06%20MCS/01_Spring2020/CS525_AdvancedDatabaseOrg/project/Ass2_BufferManager/Ass2_BufferManager/test_assign2_1.c"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "86"
+                  endingLineNumber = "86"
+                  offsetFromSymbolStart = "174">
+               </Location>
+               <Location
+                  uuid = "0B94BDC6-2ADD-4D92-9EF2-CB5F6E712664 - 3b323e852dbb9d59"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "createDummyPages"
+                  moduleName = "Ass2_BufferManager"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/juanluispolog/OneDrive%20-%20Universidad%20Polite%CC%81cnica%20de%20Madrid/JUAN%20LUIS/06%20MCS/01_Spring2020/CS525_AdvancedDatabaseOrg/project/Ass2_BufferManager/Ass2_BufferManager/test_assign2_1.c"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "86"
+                  endingLineNumber = "86"
+                  offsetFromSymbolStart = "179">
+               </Location>
+               <Location
+                  uuid = "0B94BDC6-2ADD-4D92-9EF2-CB5F6E712664 - 3b323e852dbb9d59"
+                  shouldBeEnabled = "No"
+                  ignoreCount = "0"
+                  continueAfterRunningActions = "No"
+                  symbolName = "createDummyPages"
+                  moduleName = "Ass2_BufferManager"
+                  usesParentBreakpointCondition = "Yes"
+                  urlString = "file:///Users/juanluispolog/OneDrive%20-%20Universidad%20Polite%CC%81cnica%20de%20Madrid/JUAN%20LUIS/06%20MCS/01_Spring2020/CS525_AdvancedDatabaseOrg/project/Ass2_BufferManager/Ass2_BufferManager/test_assign2_1.c"
+                  startingColumnNumber = "9223372036854775807"
+                  endingColumnNumber = "9223372036854775807"
+                  startingLineNumber = "86"
+                  endingLineNumber = "86"
+                  offsetFromSymbolStart = "208">
+               </Location>
+            </Locations>
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0C9F7E81-5685-4D99-A215-C2878C5E0EBD"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/buffer_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "516"
+            endingLineNumber = "516"
+            landmarkName = "pinPageFIFO(bm, page, pageNum)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "FA864166-2933-4EEC-91F9-157199DE1A92"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/storage_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "137"
+            endingLineNumber = "137"
+            landmarkName = "readBlock(pageNum, fHandle, memPage)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A28FB0D6-61D5-42D9-8E0A-48719DAD23B3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/storage_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "141"
+            endingLineNumber = "141"
+            landmarkName = "readBlock(pageNum, fHandle, memPage)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "99444077-FE21-41F0-9A65-8F0BE37C26A3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/storage_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "145"
+            endingLineNumber = "145"
+            landmarkName = "readBlock(pageNum, fHandle, memPage)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "79F275B7-3140-43A3-816D-B3E82B2F75CF"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/storage_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "140"
+            endingLineNumber = "140"
+            landmarkName = "readBlock(pageNum, fHandle, memPage)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E9C35DEA-F53D-46AD-9362-3AB054DA1CEC"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/storage_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "144"
+            endingLineNumber = "144"
+            landmarkName = "readBlock(pageNum, fHandle, memPage)"
+            landmarkType = "9">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "08EF66E2-1082-40D4-BA03-078B90E5D609"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "Ass2_BufferManager/storage_mgr.c"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "135"
+            endingLineNumber = "135"
+            landmarkName = "readBlock(pageNum, fHandle, memPage)"
             landmarkType = "9">
          </BreakpointContent>
       </BreakpointProxy>

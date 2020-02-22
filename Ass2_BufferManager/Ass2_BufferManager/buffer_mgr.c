@@ -26,25 +26,29 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
                   void *stratData){
     int i = 0;
     
-    SM_FileHandle *fHandle = NULL;
+    SM_FileHandle *fHandle = (SM_FileHandle *)malloc(sizeof(SM_FileHandle));
     FIFO_Manager *fifoManager = (FIFO_Manager *)malloc(sizeof(FIFO_Manager));
     LRU_Manager *lruManager = (LRU_Manager *)malloc(sizeof(LRU_Manager));
+    BM_BufferPool *bufferManager = bm;
 
-    if(openPageFile(pageFileName, fHandle) == RC_OK){
-        bm->pageFile = pageFileName;
-        bm->numPages = numPages;
-        bm->strategy = strategy;
+    if(openPageFile(pageFileName, fHandle) == RC_OK){ // si se abre bien
+        bufferManager->pageFile = pageFileName;
+        bufferManager->numPages = numPages;
+        bufferManager->strategy = strategy;
     
         //Initilizing pages to Null values
         PageFrame *pageFrame = (PageFrame *)malloc(numPages * sizeof(PageFrame));
         int count = 0;
         while(count < numPages){
+            BM_PageHandle *pageHandle = (BM_PageHandle *)malloc(sizeof(BM_PageHandle));
             pageFrame[count].dirty = 0;
             pageFrame[count].pinned = 0;
             pageFrame[count].fixCount = 0;
             pageFrame[count].pageFrameNum = count;
-            pageFrame[count].pageHandle->pageNum = NO_PAGE;
-            pageFrame[count].pageHandle->data = NULL;
+            pageHandle->pageNum = NO_PAGE;
+            pageHandle->data = NULL;
+            pageFrame[count].pageHandle = *pageHandle;
+            free(pageHandle);
             count++;
         }
         
@@ -65,7 +69,10 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
             fifoManager->llenos = llenos;
             fifoManager->vacios = vacios;
             
-            bm->mgmtData = fifoManager;
+            free(llenos);
+            free(vacios);
+            
+            bufferManager->mgmtData = fifoManager;
         }
         
         if (strategy == RS_LRU){
@@ -84,7 +91,7 @@ RC initBufferPool(BM_BufferPool *const bm, const char *const pageFileName,
             lruManager->index = index;
 //            (*lruManager).lruQueue = lruQueue;
             
-            bm->mgmtData = lruManager;
+            bufferManager->mgmtData = lruManager;
         }
         
         free(fHandle);
@@ -112,7 +119,7 @@ RC forceFlushPool(BM_BufferPool *const bm){
             
             if(pageFrames[count].dirty == 1){
                 
-                forcePage(bm, pageFrames[count].pageHandle);
+                forcePage(bm, &pageFrames[count].pageHandle);
                 
 //                SM_FileHandle *fHandle = malloc(sizeof(SM_FileHandle));
 //                if(openPageFile(bm->pageFile, fHandle)==RC_OK){
@@ -184,7 +191,7 @@ RC markDirty (BM_BufferPool *const bm, BM_PageHandle *const page){
     PageNumber searchedPage = page->pageNum;
     
     for (i=0; i<(bm->numPages); i++) {
-        if(pageFrames[i].pageHandle->pageNum == searchedPage){
+        if(pageFrames[i].pageHandle.pageNum == searchedPage){
             pageFrames[i].dirty = 1;
         }
     }
@@ -215,8 +222,8 @@ RC forcePage (BM_BufferPool *const bm, BM_PageHandle *const page){
     
     if(openPageFile((*bm).pageFile, fHandle) == RC_OK){
         for (i=0; i<(*bm).numPages; i++) {
-            if(pageFrames[i].pageHandle->pageNum == searchedPage){
-                if(writeBlock(pageFrames[i].pageHandle->pageNum, fHandle, pageFrames[i].pageHandle->data) == RC_OK){
+            if(pageFrames[i].pageHandle.pageNum == searchedPage){
+                if(writeBlock(pageFrames[i].pageHandle.pageNum, fHandle, pageFrames[i].pageHandle.data) == RC_OK){
                     pageFrames[i].dirty = 0;
                     if ((*bm).strategy == RS_FIFO){
                         fifoManager->writeCount++;
@@ -263,7 +270,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
     }
     
     if (bm->strategy == RS_LRU) {
-        pinPageLRU(bm, page, pageNum);
+//        pinPageLRU(bm, page, pageNum);
     }
     
 //    // Pegamos la copia del llenos modificada en el struct fifoManager
@@ -275,7 +282,7 @@ RC pinPage (BM_BufferPool *const bm, BM_PageHandle *const page,
 //    // Como fifoManager es una copia, volvemos a copiarla en el struct bm
 //    bm->mgmtData = fifoManager;
     
-    return 0;
+    return RC_OK;
 }
 
 
@@ -305,7 +312,7 @@ PageNumber *getFrameContents (BM_BufferPool *const bm){
     int *frameContents = (int *)malloc((bm->numPages)*sizeof(int));
     int i = 0;
     for (i=0; i<(bm->numPages); i++) {
-        frameContents[i] = pageFrames[i].pageHandle->pageNum;
+        frameContents[i] = pageFrames[i].pageHandle.pageNum;
     }
     
     return frameContents;
@@ -360,7 +367,7 @@ int *getFixCounts (BM_BufferPool *const bm){
     int *fixCounts = (int *)malloc((bm->numPages)*sizeof(int));
     int i = 0;
     for (i=0; i<(bm->numPages); i++) {
-        fixCounts[i] = pageFrames[i].pageHandle->pageNum;
+        fixCounts[i] = pageFrames[i].pageHandle.pageNum;
         if (fixCounts[i] == -1) {
             fixCounts[i] = 0;
         }
@@ -430,7 +437,7 @@ int searchPageFramePosition(BM_BufferPool *const bm, const PageNumber pageNum){
     PageFrame *pageFrames = (PageFrame *) fifoManager->fifoPageFrames;
     
     int index=0;
-    while(pageNum != pageFrames[index].pageHandle->pageNum){
+    while(pageNum != pageFrames[index].pageHandle.pageNum){
         index++;
         if (index >= bm->numPages) {
             return NO_PAGE;
@@ -445,8 +452,9 @@ int searchPageFramePosition(BM_BufferPool *const bm, const PageNumber pageNum){
 RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
                 const PageNumber pageNum){
     
-    SM_FileHandle *fHandle = NULL;
+    SM_FileHandle *fHandle;
     FIFO_Manager *fifoManager = (FIFO_Manager *)bm->mgmtData;
+    BM_PageHandle *pageFrame = page;
     PageFrame *pageFrames = (PageFrame *) fifoManager->fifoPageFrames;
     int *llenos = (int *)fifoManager->llenos;
     int *vacios = (int *)fifoManager->vacios;
@@ -497,9 +505,14 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
             pageFrames[llenos[j]].fixCount = 1;
             pageFrames[llenos[j]].pinned = 1;
             pageFrames[llenos[j]].pageFrameNum = llenos[j];
-            pageFrames[llenos[j]].pageHandle->pageNum = pageNum;
-            if(readBlock(pageNum, fHandle, pageFrames[llenos[j]].pageHandle->data) == RC_OK){
+            pageFrames[llenos[j]].pageHandle.pageNum = pageNum;
+            
+            SM_PageHandle content = (SM_PageHandle)malloc(PAGE_SIZE);
+            openPageFile(bm->pageFile, fHandle);
+            if(readBlock(pageNum, fHandle, content) == RC_OK){
                 fifoManager->readCount++;
+                page->data = content;
+                page->pageNum = pageNum;
                 RC_message = "RC_FIRST_TIME_PINNED_PAGE";
                 return RC_OK;
             }
@@ -516,7 +529,7 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
             for (j=0; j<(bm->numPages); j++) {
                 if(pageFrames[llenos[j]].fixCount == 0){
                     if (pageFrames[llenos[j]].dirty == 1) {
-                        forcePage(bm, pageFrames[llenos[j]].pageHandle);
+                        forcePage(bm, &pageFrames[llenos[j]].pageHandle);
                     }
                     flag = 1;
                     break;
@@ -544,8 +557,8 @@ RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page,
             pageFrames[freeIndex].fixCount = 1;
             pageFrames[freeIndex].pinned = 1;
             pageFrames[freeIndex].pageFrameNum = freeIndex;
-            pageFrames[freeIndex].pageHandle->pageNum = page->pageNum;
-            if(readBlock(page->pageNum, fHandle, pageFrames[freeIndex].pageHandle->data) == RC_OK){
+            pageFrames[freeIndex].pageHandle.pageNum = page->pageNum;
+            if(readBlock(page->pageNum, fHandle, pageFrames[freeIndex].pageHandle.data) == RC_OK){
                 fifoManager->readCount++;
                 RC_message = "RC_FIRST_TIME_PINNED_PAGE";
                 return RC_OK;
