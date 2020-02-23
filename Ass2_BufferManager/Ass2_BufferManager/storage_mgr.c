@@ -124,7 +124,9 @@ extern RC destroyPageFile (char *fileName){
 extern RC readBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     //Checking if the pageNum is lower than the existing number of pages and
     //if pageNum is greater than 0
-    if((*fHandle).totalNumPages < pageNum || pageNum < 0){
+    
+//    (*fHandle).totalNumPages < pageNum || 
+    if(pageNum < 0){
         RC_message = "READ NON EXISTING PAGE";
         return RC_READ_NON_EXISTING_PAGE;
     }
@@ -212,7 +214,9 @@ extern RC readLastBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 extern RC writeBlock (int pageNum, SM_FileHandle *fHandle, SM_PageHandle memPage){
     //Checking if the pageNum is lower than the existing number of pages and
     //if pageNum is greater than 0
-    if((*fHandle).totalNumPages < pageNum || pageNum < 0){
+    
+//    (*fHandle).totalNumPages < pageNum || 
+    if(pageNum < 0){
         RC_message = "WRITE FAILED";
         return RC_WRITE_FAILED;
     }
@@ -253,44 +257,84 @@ extern RC writeCurrentBlock (SM_FileHandle *fHandle, SM_PageHandle memPage){
 }
 
 
-extern RC appendEmptyBlock (SM_FileHandle *fHandle){
-    //calloc() function initializes to zero a dynamic variable type SM_PageHandle
-    SM_PageHandle newPage = (SM_PageHandle)calloc(PAGE_SIZE, sizeof(char));
-    //Using writeBlock function to append the newPage at the end of the file (see writeBlock)
-    //If the write is OK, it increases the number of total pages of the file handle and frees the
-    //dynamic variable newPage.
-    if(writeBlock((*fHandle).totalNumPages+1, fHandle, newPage) == RC_OK){
-        (*fHandle).totalNumPages++;
-        free(newPage);
-        return RC_OK;
-    }
-    else {
-        free(newPage);
-        return RC_WRITE_FAILED;
-    }
-       
+//extern RC appendEmptyBlock (SM_FileHandle *fHandle){
+//    //calloc() function initializes to zero a dynamic variable type SM_PageHandle
+//    SM_PageHandle newPage = (SM_PageHandle)calloc(PAGE_SIZE, sizeof(char));
+//    //Using writeBlock function to append the newPage at the end of the file (see writeBlock)
+//    //If the write is OK, it increases the number of total pages of the file handle and frees the
+//    //dynamic variable newPage.
+//    if(writeBlock((*fHandle).totalNumPages+1, fHandle, newPage) == RC_OK){
+//        (*fHandle).totalNumPages++;
+////        free(newPage);
+//        return RC_OK;
+//    }
+//    else {
+////        free(newPage);
+//        return RC_WRITE_FAILED;
+//    }
+//
+//}
+
+
+//extern RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
+//
+//    if((*fHandle).mgmtInfo == NULL){
+//        RC_message = "RC_FILE_HANDLE_NOT_INIT";
+//        return RC_FILE_HANDLE_NOT_INIT;
+//    }
+//    //If file has same number of pages
+//    if((*fHandle).totalNumPages == numberOfPages){
+//        RC_message = "FILE HAS SAME NUMBER OF PAGES";
+//        return RC_OK;
+//    }
+//    //Else, empty blocks are added until the file has same number of pages
+//    else{
+//        RC_message = "FILE HAS LESS NUMBER OF PAGES";
+//        do{
+//            appendEmptyBlock(fHandle);
+//        } while(numberOfPages > (*fHandle).totalNumPages);
+//
+//        RC_message = "PAGES HAVE BEEN ADDED AND FILE HAS SAME NUMBER OF PAGES";
+//        return RC_OK;
+//    }
+//}
+
+
+
+
+RC appendEmptyBlock (SM_FileHandle *fHandle){
+
+    FILE *fileptr = fopen((*fHandle).fileName, "w");
+
+    SM_PageHandle buffer = (SM_PageHandle) calloc(1,PAGE_SIZE);
+
+    // Move the pointer to the EOF
+    fseek(fileptr,0,SEEK_END);
+
+    //Write the Empty block
+    fwrite(buffer, sizeof(buffer),1,fileptr);
+
+    //Update Current Page Position and Total Nº of Pages
+    fHandle->totalNumPages +=1;
+    fHandle->curPagePos = fHandle->totalNumPages;
+
+    free(buffer);
+    return RC_OK;
 }
 
 
-extern RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
-    
-    if((*fHandle).mgmtInfo == NULL){
-        RC_message = "RC_FILE_HANDLE_NOT_INIT";
-        return RC_FILE_HANDLE_NOT_INIT;
-    }
-    //If file has same number of pages
-    if((*fHandle).totalNumPages == numberOfPages){
-        RC_message = "FILE HAS SAME NUMBER OF PAGES";
+RC ensureCapacity (int numberOfPages, SM_FileHandle *fHandle){
+    if(numberOfPages <= fHandle->totalNumPages){
         return RC_OK;
     }
-    //Else, empty blocks are added until the file has same number of pages
-    else{
-        RC_message = "FILE HAS LESS NUMBER OF PAGES";
-        do{
-            appendEmptyBlock(fHandle);
-        } while(numberOfPages > (*fHandle).totalNumPages);
-        
-        RC_message = "PAGES HAVE BEEN ADDED AND FILE HAS SAME NUMBER OF PAGES";
-        return RC_OK;
+
+    //Append the empty blocks until the desired numberOfPages
+    while(fHandle->totalNumPages < numberOfPages){
+        appendEmptyBlock(fHandle);
     }
+
+    return RC_OK;
 }
+
+
+

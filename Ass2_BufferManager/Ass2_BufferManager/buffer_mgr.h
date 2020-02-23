@@ -7,6 +7,13 @@
 // Include bool DT
 #include "dt.h"
 
+#include <time.h>
+
+//#include "FIFO_Strategy.h"
+//#include "LRU_Strategy.h"
+//#include "PageFrames.h"
+//#include "BufferInfo.h"
+#include "storage_mgr.h"
 
 
 // Replacement Strategies
@@ -27,7 +34,7 @@ typedef struct BM_BufferPool {
 	int numPages;
 	ReplacementStrategy strategy;
 	void *mgmtData; // use this one to store the bookkeeping info your buffer
-	// manager needs for a buffer pool
+	                // manager needs for a buffer pool
 } BM_BufferPool;
 
 typedef struct BM_PageHandle {
@@ -36,33 +43,26 @@ typedef struct BM_PageHandle {
 } BM_PageHandle;
 
 
-// Struct that stores the page frame info
-typedef struct PageFrame {
+
+// NEW STRUCTS
+
+typedef struct PageFrames {
     bool dirty;
     bool pinned;
     int fixCount;
+    time_t timestamp;
+    int timestampPage;
     PageNumber pageFrameNum;
     BM_PageHandle pageHandle;
-} PageFrame;
+} PageFrames;
 
-// Struct that stores the
 
-typedef struct FIFO_Manager {
-    void *llenos;
-    void *vacios;
+typedef struct BufferInfo {
+    int numFrames;
     int readCount;
     int writeCount;
-    void *fifoPageFrames;
-} FIFO_Manager;
-
-
-typedef struct LRU_Manager {
-//    void *PageID;
-    void *index;
-    int readCount;
-    int writeCount;
-    void *lruPageFrames;
-} LRU_Manager;
+    PageFrames *pageFrame;
+} BufferInfo;
 
 
 // convenience macros
@@ -93,11 +93,15 @@ int *getFixCounts (BM_BufferPool *const bm);
 int getNumReadIO (BM_BufferPool *const bm);
 int getNumWriteIO (BM_BufferPool *const bm);
 
+// STRATEGIES
+RC FIFO_Strategy(BM_BufferPool *bm, SM_FileHandle *fHandle, SM_PageHandle pageHandle,
+                const PageNumber pageNum);
+RC LRY_Strategy(BM_BufferPool *bm, SM_FileHandle *fHandle, SM_PageHandle pageHandle,
+               const PageNumber pageNum);
 
-// Nuestras funciones
-int searchPageFramePosition(BM_BufferPool *const bm, const PageNumber pageNum);
-RC pinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum);
-RC unpinPageFIFO (BM_BufferPool *const bm, BM_PageHandle *const page);
-RC pinPageLRU (BM_BufferPool *const bm, BM_PageHandle *const page, const PageNumber pageNum);
+RC readFrame(BufferInfo *bufferInfo, PageNumber pageNum, char* pageFile, SM_FileHandle *fHandle,
+             SM_PageHandle pageHandle);
+RC writeFrame(BufferInfo *bufferInfo, PageNumber pageNum, char* pageFile, SM_FileHandle *fHandle,
+              SM_PageHandle pageHandle);
 
 #endif

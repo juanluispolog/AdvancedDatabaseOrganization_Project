@@ -42,7 +42,7 @@ main (void)
     initStorageManager();
     testName = "";
     
-    testLRU_K();
+//    testLRU_K();
     testError();
     return 0;
 }

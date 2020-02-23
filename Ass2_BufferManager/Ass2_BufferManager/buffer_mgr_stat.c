@@ -45,6 +45,7 @@ sprintPoolContent (BM_BufferPool *const bm)
 	fixCount = getFixCounts(bm);
 
 	for (i = 0; i < bm->numPages; i++)
+        //pos += sprintf(message + pos, "%s[%i%s%i]", ((i == 0) ? "" : ",") , *(frameContent+i), (*dirty ? "x": " "), *fixCount);
 		pos += sprintf(message + pos, "%s[%i%s%i]", ((i == 0) ? "" : ",") , frameContent[i], (dirty[i] ? "x": " "), fixCount[i]);
 
 	return message;
